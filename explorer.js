@@ -23,6 +23,7 @@ var youStoleSnippet = "from you";
 var stoleFromSnippet = " stole:  from "; // extra space from icon
 var robberSnippet = " moved robber to"
 var yearOfPleantlySnippet = "took from bank"
+var selfPosition; //reversed
 
 var wood = "wood";
 var stone = "stone";
@@ -809,26 +810,40 @@ function tallyInitialResources() {
 /**
 * Once initial settlements are placed, determine the players.
 */
+//To make sure user is on the bottom
+//
 function recognizeUsers() {
     var allMessages = getAllMessages();
-    var placementMessages = allMessages.filter(msg => msg.textContent.includes(placeInitialSettlementSnippet));
+    var placementMessages = allMessages.filter(msg => msg.textContent.includes(startingResourcesSnippet));
     console.log("total placement messages", placementMessages.length);
+    var tempPlayers = [];
+    var tempColors = [];
     for (var msg of placementMessages) {
         msg_text = msg.textContent;
-        username = msg_text.replace(placeInitialSettlementSnippet, "").split(" ")[0];
+        username = msg_text.replace(startingResourcesSnippet, "").split(" ")[0];
         console.log(username);
-        if (!resources[username]) {
-            players.push(username);
-            player_colors[username] = msg.style.color;
-            resources[username] = {
+        tempPlayers.push(username);
+        tempColors.push(msg.style.color);
+        if (username == playerUsername) {
+            selfPosition = tempPlayers.length;
+        }
+    }
+    // say I'm 2nd position, want 3,4,1,2
+    //input is 4,3,2,1
+    //position 0,1,2,3
+    //length   1,2,3,4
+    console.log(playerUsername);
+    for (var i = selfPosition + 2 * tempPlayers.length - 2; i > selfPosition + tempPlayers.length -2; i--) {
+        players.push(tempPlayers[i % tempPlayers.length]);
+        player_colors[tempPlayers[i % tempPlayers.length]] = tempColors[i % tempPlayers.length];
+        resources[tempPlayers[i % tempPlayers.length]] = {
                 [wood]: 0,
                 [stone]: 0,
                 [wheat]: 0,
                 [brick]: 0,
                 [sheep]: 0,
-            };
-        }
-    }
+        };
+    }    
 }
 
 function clearResources() {
@@ -900,7 +915,9 @@ function findPlayerName() {
             playerUsername = document.getElementById("header_profile_username")//document.getElementById("game-log-text");
         }
     }, 500);
+    
 }
 
 findPlayerName();
+
 findTranscription();
